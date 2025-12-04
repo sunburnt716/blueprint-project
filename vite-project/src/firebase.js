@@ -6,7 +6,7 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
-  signOut
+  signOut,
 } from "firebase/auth";
 import {
   getFirestore,
@@ -17,7 +17,7 @@ import {
   collection,
   updateDoc,
   onSnapshot,
-  query
+  query,
 } from "firebase/firestore";
 
 // Publically available from web app
@@ -25,10 +25,10 @@ const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket:import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 // Initialize Firebase
@@ -99,7 +99,7 @@ export const updateInstagramCache = async (username, data) => {
     {
       username,
       ...data,
-      lastUpdated: Date.now()
+      lastUpdated: Date.now(),
     },
     { merge: true }
   );
@@ -126,13 +126,10 @@ export const getInstagramCache = async (username) => {
  * @param {*} username Account being added.
  */
 export const addTrackedAccount = async (userId, username) => {
-  await setDoc(
-    doc(db, "users", userId, "trackedAccounts", username),
-    {
-      username,
-      addedAt: Date.now()
-    }
-  );
+  await setDoc(doc(db, "users", userId, "trackedAccounts", username), {
+    username,
+    addedAt: Date.now(),
+  });
 };
 
 /**
@@ -141,10 +138,9 @@ export const addTrackedAccount = async (userId, username) => {
  * @param {*} username Account being removed.
  */
 export const removeTrackedAccount = async (userId, username) => {
-  await updateDoc(
-    doc(db, "users", userId, "trackedAccounts", username),
-    { removed: true }
-  );
+  await updateDoc(doc(db, "users", userId, "trackedAccounts", username), {
+    removed: true,
+  });
 };
 
 /**
@@ -171,12 +167,10 @@ export const getUserTrackedAccounts = async (userId) => {
  */
 export const listenUserTrackedAccounts = (userId, callback) => {
   const colRef = collection(db, "users", userId, "trackedAccounts");
-  return onSnapshot(
-    colRef,
-    (snap) => {
-      const accounts = snap.docs.map((doc) => doc.id);
-      callback(accounts);
-    });
+  return onSnapshot(colRef, (snap) => {
+    const accounts = snap.docs.map((doc) => doc.id);
+    callback(accounts);
+  });
 };
 
 /**
@@ -196,3 +190,29 @@ export const listenInstagramCache = (username, callback) => {
 };
 
 export { auth, db };
+
+// -------------------------------------------------
+// USER SEARCH AND EVENTS FUNCTIONS
+// -------------------------------------------------
+
+/**
+ * Fetch all registered users from Firestore.
+ * Returns an array of objects: { uid, email, displayName }
+ */
+export const getRegisteredUsers = async () => {
+  const snapshot = await getDocs(collection(db, "users"));
+  return snapshot.docs.map((doc) => ({ uid: doc.id, ...doc.data() }));
+};
+
+/**
+ * Fetch events uploaded by a specific user.
+ * Assumes events collection has a "userId" field linking to users.
+ * @param {string} uid - User ID of the selected user
+ * @returns Array of event objects
+ */
+export const getUserEvents = async (uid) => {
+  const snapshot = await getDocs(collection(db, "events"));
+  return snapshot.docs
+    .filter((doc) => doc.data().userId === uid)
+    .map((doc) => ({ id: doc.id, ...doc.data() }));
+};
