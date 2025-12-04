@@ -79,12 +79,16 @@ body,
   z-index: 1000;
 }
 
+.exit-login-btn {
+  margin-bottom: 10px;
+}
+
 .user-info {
   text-align: center;
 }
 
 .login-button {
-  margin
+  width: 100%;
 }
 
 /*********************
