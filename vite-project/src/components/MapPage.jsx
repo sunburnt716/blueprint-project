@@ -44,15 +44,17 @@ export default function MapPage() {
       const cloud = await getUserTrackedAccounts(currentUser.uid);
 
       // Merge local and cloud accounts
-      const merged = Array.from(new Set([...localAccounts, ...cloud]));
-      setLocalAccounts(merged);
-
-      // Write merged accounts back to cloud
-      for (const acct of merged) {
-        await addTrackedAccount(currentUser.uid, acct);
-      }
+      setLocalAccounts((prev) => {
+        const merged = Array.from(new Set([...prev, ...cloud]));
+        console.log("Merged local and cloud accounts:", merged);
+        // Push merged accounts to Firestore
+        merged.forEach(async (acct) => {
+          await addTrackedAccount(currentUser.uid, acct);
+        });
+        return merged;
+      });
+      return () => unsub();
     });
-    return () => unsub();
   }, [setUser]);
 
   // Local storage stuff
@@ -90,10 +92,19 @@ export default function MapPage() {
 
       <AccountSearch
         user={user}
+        trackedAccounts={localAccounts}
         onAddAccount={(account) => {
           setLocalAccounts((prev) => {
             const updated = prev.includes(account) ? prev : [...prev, account];
-            console.log(`Added @${account} to local accounts.`);
+            console.log(`[MapPage: AccountSearch prop] Added @${account} to local accounts.`);
+            return updated;
+          });
+          // Cloud sync is handled in AccountSearch
+        }}
+        onRemoveAccount={(account) => {
+          setLocalAccounts((prev) => {
+            const updated = prev.filter((prev) => prev !== account);
+            console.log(`[MapPage: AccountSearch prop] Removed @${account} from local accounts.`);
             return updated;
           });
           // Cloud sync is handled in AccountSearch
@@ -105,7 +116,7 @@ export default function MapPage() {
       {mapInstance && (
         <EventMarker map={mapInstance} trackedAccounts={localAccounts} />
       )}
-      
+
       <div
         className="test-list-overlay"
         style={{

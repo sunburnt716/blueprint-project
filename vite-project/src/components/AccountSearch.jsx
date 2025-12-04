@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { searchInstagramAccount } from "../instagramAPI.js";
-import { addTrackedAccount, updateInstagramCache } from "../firebase.js"
+import { addTrackedAccount, removeTrackedAccount, updateInstagramCache } from "../firebase.js"
 
-export default function AccountSearch({ user, onAddAccount }) { 
+export default function AccountSearch({ user, trackedAccounts, onAddAccount, onRemoveAccount }) { 
   const [input, setInput] = useState("");
   const [searchResult, setSearchResult] = useState(null);
   const [error, setError] = useState(null);
@@ -47,19 +47,41 @@ export default function AccountSearch({ user, onAddAccount }) {
         await updateInstagramCache(username, searchResult);
         const added = await addTrackedAccount(user.uid, username);
         if (added) {
-          console.log(`Added @${username} to Firestore.`);
+          console.log(`[AccountSearch] Added @${username} to Firestore.`);
         } else {
-          console.log(`@${username} already tracked`)
+          console.log(`[AccountSearch] @${username} already tracked.`)
         }
       } catch (err) {
         console.error(err);
-        setError("Failed to sync with Firestore.");
+        setError("[AccountSearch] Failed to update Firestore (add).");
       }
     }
-
-    setInput("");
-    setSearchResult(null);
   }
+
+  const handleRemoveAccount = async () => {
+    if (!searchResult) return;
+    const username = searchResult.username;
+
+    // Always update local accounts
+    onRemoveAccount(username);
+
+    // Remove from Firestore if logged in
+    if (user) {
+      try {
+        const removed = await removeTrackedAccount(user.uid, username);
+        if (removed) {
+          console.log(`[AccountSearch] Removed @${username} from Firestore.`);
+        } else {
+          console.log(`[AccountSearch] @${username} not tracked.`)
+        }
+      } catch (err) {
+        console.error(err);
+        setError("[AccountSearch] Failed to update Firestore (remove).")
+      }
+    }
+  }
+
+  const isTracked = searchResult && trackedAccounts?.includes(searchResult.username);
 
   return (
     <div className="account-search-container">
@@ -76,14 +98,20 @@ export default function AccountSearch({ user, onAddAccount }) {
         </button>
       </form>
 
-      {error && <div className="search-status error">{error}</div>}
+      {error && (
+        <div className="search-status-error">
+          {error}
+        </div>
+      )}
       
       {searchResult && (
         <div className="search-result">
-          <span>@{searchResult.username} ({searchResult.name})</span>
-          <button onClick={handleAddAccount}>
-            Add to Tracked Accounts
-          </button>
+          @{searchResult.username}
+          {isTracked ? (
+            <button onClick={handleRemoveAccount}>-</button>
+          ) : (
+            <button onClick={handleAddAccount}>+</button>
+          )}
         </div>
       )}
     </div>

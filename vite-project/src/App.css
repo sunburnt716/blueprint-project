@@ -63,9 +63,7 @@ body,
   z-index: 1000;
 }
 
-.open-login-btn:hover {
-  background: #f0f0f0;
-}
+.open-login-btn:hover { background: #f0f0f0; }
 
 .modal-overlay {
   position: absolute;
@@ -79,103 +77,73 @@ body,
   z-index: 1000;
 }
 
-.exit-login-btn {
-  margin-bottom: 10px;
-}
+.exit-login-btn { margin-bottom: 10px; }
 
-.user-info {
-  text-align: center;
-}
+.user-info { text-align: center; }
 
-.login-button {
-  width: 100%;
-}
+.login-button { width: 100%; }
 
 /*********************
  *  Search Elements  *
  *********************/
 
-.search-overlay {
-  /* Positioning the search bar */
+/* Container that overlays the map, centered at top */
+.account-search-container {
   position: absolute;
-  top: 10px; 
-  left: 0; 
-  width: 100%; 
-  z-index: 1000;
-  
-  display: flex;
-  justify-content: center; 
-  flex-direction: column;
-  align-items: center;
-  gap: 8px; 
-}
-
-/* Styling Search Bar Container */
-.club-search-container {
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(560px, 92vw);
+  z-index: 1000;          /* above the map */
   display: flex;
   flex-direction: column;
-  
-  max-width: 400px; 
-  width: 90%; 
-  
-  background: transparent;
-  padding: 0; 
+  gap: 8px;
 }
 
+/* The search bar */
 .search-form {
-  /* Visual bar */
   display: flex;
   align-items: center;
-  padding: 0; 
-  width: 100%; 
-  
-  /* Style form like a clean input box */
-  background-color: white; 
-  border-radius: 4px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow for floating effect */
+  width: 100%;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 6px rgba(0,0,0,.18);
+  overflow: hidden;       /* keep rounded corners clean */
 }
 
 .search-form input {
-  flex-grow: 1;
+  flex: 1;
   padding: 10px 12px;
   border: none;
   background: transparent;
-  color: gray;
-  outline: none; 
+  color: #333;
+  outline: none;
   font-family: Roboto, Arial, sans-serif;
   font-size: 14px;
 }
 
 .search-form button {
   padding: 10px 12px;
-  background-color: transparent;
+  background: transparent;
   color: #333;
   border: none;
+  border-left: 1px solid #eee;
   cursor: pointer;
-  transition: background-color 0.1s;
-  flex-shrink: 0; 
-  border-left: 1px solid #eee; /* Light separator */
 }
+.search-form button:hover { background: #f5f5f5; }
 
-.search-form button:hover {
-  background-color: #f0f0f0; /* Slight gray hover effect */
-}
-
-/* Styling Search Result */
-.search-result {
-  /* Position results below main search bar */
-  width: 50%; /* <-- Ensures it spans full width of search form */
+.search-result, .search-status-error {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  
-  /* Floating Box Style */
-  background: white; 
+
+  background: #fafafa;            /* light gray */
   padding: 12px 15px;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); 
-  border-top: 2px solid #646cff; /* Highlight bar */
-  
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  border: 1px solid #e0e0e0;      /* subtle border */
+  border-top: 3px solid #646cff;
+
   font-family: Roboto, Arial, sans-serif;
   font-size: 14px;
   color: #213547;

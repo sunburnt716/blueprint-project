@@ -16,6 +16,7 @@ import {
   getDocs,
   collection,
   updateDoc,
+  deleteDoc,
   onSnapshot,
   query
 } from "firebase/firestore";
@@ -127,20 +128,15 @@ export const getInstagramCache = async (username) => {
  * @returns true if an account was added, false otherwise
  */
 export const addTrackedAccount = async (userId, username) => {
+  // Return if account is already tracked
+  if (await accountTracked(userId, username)) return false;
+
   const ref = doc(db, "users", userId, "trackedAccounts", username);
-  const snap = await getDoc(ref);
-
-  // No duplicates
-  if (snap.exists()) {
-    console.log(`@${username} already tracked by user`);
-    return false;
-  }
-
   await setDoc(ref, {
     username,
     addedAt: Date.now()
   });
-  console.log(`@${username} added to Firestore`);
+  console.log(`[Firebase] @${username} added to Firestore.`);
   return true;
 };
 
@@ -148,13 +144,29 @@ export const addTrackedAccount = async (userId, username) => {
  * Remove an account from a user's tracked accounts.
  * @param {*} userId User removing the tracked account.
  * @param {*} username Account being removed.
+ * @returns true if deleted, false otherwise
  */
 export const removeTrackedAccount = async (userId, username) => {
-  await updateDoc(
-    doc(db, "users", userId, "trackedAccounts", username),
-    { removed: true }
-  );
+  // Return if account is not tracked (nothing to remove)
+  if (!(await accountTracked(userId, username))) return false;
+
+  const ref = doc(db, "users", userId, "trackedAccounts", username);
+  await deleteDoc(ref);
+  console.log(`[Firebase] @${username} removed from Firestore.`);
+  return true;
 };
+
+/**
+ * Check if a user is already tracking an account.
+ * @param {*} userID Current user.
+ * @param {*} username Account to check.
+ * @returns true if it is already tracked, false otherwise
+ */
+const accountTracked = async (userID, username) => {
+  const ref = doc(db, "users", userID, "trackedAccounts", username);
+  const snap = await getDoc(ref);
+  return snap.exists();
+}
 
 /**
  * Get all usernames of a user's tracked accounts.
