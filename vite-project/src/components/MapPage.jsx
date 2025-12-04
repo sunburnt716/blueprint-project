@@ -30,11 +30,15 @@ export default function MapPage() {
     const saved = localStorage.getItem("localAccounts");
     return saved ? JSON.parse(saved) : [];
   });
-  const mapRef = useRef(null);
   const [mapInstance, setMapInstance] = useState(null);
+  const mapRef = useRef(null);
+  const listenerRegistered = useRef(false);
 
   // Auth and Firestore stuff
   useEffect(() => {
+    if (listenerRegistered.current) return;
+    listenerRegistered.current = true;
+
     const unsub = onAuthStateChanged(auth, async (currentUser) => {
       console.log("[MapPage] Auth state changed:", currentUser);
       setUser(currentUser);
@@ -42,7 +46,6 @@ export default function MapPage() {
 
       // Load cloud accounts once
       const cloud = await getUserTrackedAccounts(currentUser.uid);
-
       // Merge local and cloud accounts
       setLocalAccounts((prev) => {
         const merged = Array.from(new Set([...prev, ...cloud]));
