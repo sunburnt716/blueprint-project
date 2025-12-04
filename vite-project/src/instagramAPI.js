@@ -40,7 +40,7 @@ export async function searchInstagramAccount(username) {
     },
   };
 
-  const account = mockData[username.toLowerCase()];
+  const account = mockData[username];
 
   if (account && account.isBusiness) {
     return { ...account };

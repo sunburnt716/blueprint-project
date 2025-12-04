@@ -4,9 +4,9 @@ import { onAuthStateChanged } from "firebase/auth";
 
 import { auth, addTrackedAccount, getUserTrackedAccounts } from "../firebase.js";
 
-import EventMarker from "./EventMarker";
-import AccountSearch from "./AccountSearch";
-import LoginModal from "./LoginModal";
+import EventMarker from "./EventMarker.jsx";
+import AccountSearch from "./AccountSearch.jsx";
+import LoginModal from "./LoginModal.jsx";
 
 import '../App.css';
 
