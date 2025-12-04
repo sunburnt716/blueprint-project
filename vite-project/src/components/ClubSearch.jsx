@@ -1,12 +1,17 @@
 import React, { useState } from "react";
-// Removed import { addTrackedAccount } from "../firebase.js", if this is wrong please adjust
 import { searchInstagramAccount } from "../api/instagramAPI.js";
+import { addTrackedAccount, updateInstagramCache } from "../firebase.js"
 
 /**
  * Search bar component to lookup Instagram handles and add them to the tracked list.
+ * 
+ * Database structure:
+ *   /instagramAccounts/{username} - Stores cached Instagram account data.
+ *   /users/{uid}/trackedAccounts/{username} - Stores the list of tracked accounts for each user.
+ * 
  * @param {object} props
  * @param {object | null} props.user - The currently logged-in user object or null.
- * @param {function} props.onAddClub - Callback to add the club to the temporary list.
+ * @param {function} props.onAddClub - Callback to add the club.
  */
 export default function ClubSearch({ user, onAddClub }) { 
   const [input, setInput] = useState("");
@@ -16,13 +21,13 @@ export default function ClubSearch({ user, onAddClub }) {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    const username = input.trim().toLowerCase().replace('@', '');
 
+    const username = input.trim().replace('@', '');
     if (!username) return;
 
     setSearchResult(null);
-    setError(null);
     setIsLoading(true);
+    setError(null);
 
     try {
       // 1. Search the account (using simulated API call)
@@ -42,20 +47,32 @@ export default function ClubSearch({ user, onAddClub }) {
     }
   };
 
-  const handleAddClub = () => {
-    // BYPASS AUTH: Call the simple add function directly
-    if (searchResult) {
-      try {
-        onAddClub(searchResult.username); // Call the function passed from MapPage
-        
-        // Optional: Clear results or show success message
-        setInput("");
-        setSearchResult(null);
-        alert(`Successfully added ${searchResult.username}! (TEST MODE)`);
+  const handleAddClub = async () => {
+    if (!searchResult) return;
 
-      } catch (err) {
-        setError(`Failed to add club: ${err.message}`);
-      }
+    // User not logged in -> guest mode tracking
+    if (!user) {
+      if (onAddClub) onAddClub(searchResult.username);
+
+      setInput("");
+      setSearchResult(null);
+      alert(`@${searchResult.username} added locally. Log in to save it permanently.`);
+      return;
+    }
+
+    // User is logged in -> write to Firestore
+    try {
+      await updateInstagramCache(searchResult.username, searchResult);
+      await addTrackedAccount(user.uid, searchResult.username);
+    
+      if (onAddClub) onAddClub(searchResult.username);
+
+      setInput("");
+      setSearchResult(null);
+      alert(`@${searchResult.username} added to your tracked accounts.`);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to add account. Try again later.");
     }
   };
 
@@ -66,7 +83,7 @@ export default function ClubSearch({ user, onAddClub }) {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Search Instagram handle (e.g., @club_a)"
+          placeholder="Search Instagram handle"
           disabled={isLoading}
         />
         <button type="submit" disabled={isLoading}>
@@ -80,7 +97,7 @@ export default function ClubSearch({ user, onAddClub }) {
         <div className="search-result">
           <span>@{searchResult.username} ({searchResult.name})</span>
           <button onClick={handleAddClub}>
-            Add to List (TEST MODE)
+            Add to Tracked Accounts
           </button>
         </div>
       )}

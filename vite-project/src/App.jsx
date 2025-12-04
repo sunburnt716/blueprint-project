@@ -1,32 +1,37 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { auth } from "./firebase.js";
+import { onAuthStateChanged } from "firebase/auth";
+
 import LoginModal from "./components/LoginModal.jsx";
-import MapPage from "./components/MapPage";
+import MapPage from "./components/MapPage.jsx";
+import ClubSearch from "./components/ClubSearch.jsx";
+
 import './App.css';
 
 export default function App() {
   const [showLogin, setShowLogin] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      console.log("Auth state changed:", currentUser);
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, [setUser]);
 
   return (
     <div style={{ height: "100vh", width: "100vw" }}>
-      <MapPage />
+      <MapPage user={user}/>
 
-      <button id="open-login"
-        onClick={() => setShowLogin(true)}
-        style={{
-          position: "absolute",
-          top: "10px",
-          right: "60px",
-          background: "white",
-          border: "1px solid black",
-          padding: "8px 12px",
-          borderRadius: "6px",
-          cursor: "pointer",
-          zIndex: 1000
-        }}>
-        Log In
+      <ClubSearch user={user}/>
+
+      <button className="open-login-btn" onClick={() => setShowLogin(true)}>
+        {user ? "Account" : "Log In"}
       </button>
 
       <LoginModal
+        user={user}
         isOpen={showLogin}
         onClose={() => setShowLogin(false)} />
     </div>

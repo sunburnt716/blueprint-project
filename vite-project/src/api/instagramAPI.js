@@ -1,4 +1,4 @@
-import { updateInstagramCache } from "../firebase.js"; // Correct path: up one level (to src/), then find firebase.js
+import { updateInstagramCache } from "../firebase.js";
 
 /**
  * Simulates fetching account data to check if it exists and is a business/creator account.
@@ -13,19 +13,19 @@ export const searchInstagramAccount = async (username) => {
 
   // 💡 Mock Data: Only 'club_a' and 'club_b' are found and are business accounts.
   const mockData = {
-    club_a: {
-      name: "The Club A Venue",
+    test_account_a: {
+      username: "test_account_a",
       isBusiness: true,
       location: { lat: 40.7128, lng: -74.006 }
     },
-    club_b: {
-      name: "B-Side Social",
+    rutgersblueprint: {
+      username: "rutgersblueprint",
       isBusiness: true,
       location: { lat: 40.7580, lng: -73.9855 }
     },
   };
 
-  const account = mockData[username.toLowerCase()];
+  const account = mockData[username];
 
   if (account && account.isBusiness) {
     return {
@@ -35,5 +35,3 @@ export const searchInstagramAccount = async (username) => {
   }
   return null; // Not found or not a business/creator account
 };
-
-export { updateInstagramCache };

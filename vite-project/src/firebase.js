@@ -70,15 +70,16 @@ export const logout = () => signOut(auth);
  * Adds a user to the database upon first login.
  * @param {*} user User who logged in. Obtained from loginWithGoogle().
  */
-export const addUser = async (user) => {
-  await setDoc(
-    doc(db, "users", user.uid),
-    {
+export const ensureUserDocument = async (user) => {
+  const userRef = doc(db, "users", user.uid);
+  const existing = await getDoc(userRef);
+
+  if (!existing.exists()) {
+    await setDoc(userRef, {
       email: user.email,
-      joinedAt: Date.now()
-    },
-    { merge: true }
-  );
+      joinedAt: Date.now(),
+    });
+  }
 };
 
 // -------------------------------------------------
@@ -186,12 +187,12 @@ export const listenUserTrackedAccounts = (userId, callback) => {
  * @returns unsubscribe function to stop listening
  */
 export const listenInstagramCache = (username, callback) => {
-  const colRef = collection(db, "instagramAccounts", username);
-  return onSnapshot(
-    colRef,
-    (snap) => {
-      if (snap.exists()) callback(snap.data());
-    });
+  const ref = doc(db, "instagramAccounts", username);
+  return onSnapshot(ref, (snap) => {
+    if (snap.exists()) {
+      callback(snap.data());
+    }
+  });
 };
 
 export { auth, db };

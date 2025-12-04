@@ -1,58 +1,43 @@
 import { useEffect, useState } from "react";
-import { auth, loginWithGoogle, logout, addUser } from "../firebase.js";
+import { auth, loginWithGoogle, logout, ensureUserDocument } from "../firebase.js";
 import { onAuthStateChanged } from "firebase/auth";
 
 import "../App.css";
 
-// import { listenUserTrackedAccounts, listenInstagramCache } from "../firebase.js";
-
-export default function LoginModal({ isOpen, onClose }) {
-    // console.log("Modal open?", isOpen);
-    const [user, setUser] = useState(null);
-
-    // Listen for login/logout changes
-    useEffect(() => {
-        const unsub = onAuthStateChanged(auth, async (currentUser) => {
-            setUser(currentUser);
-        });
-        return () => unsub();
-    }, [setUser]);
-
+export default function LoginModal({ user, isOpen, onClose }) {
     // Modal not open / user hasn't clicked login button
     if (!isOpen) return null;
 
     return (
         <div className="modal-overlay">
-            <button id="exit-login" onClick={onClose}>
+            <button className="exit-login-btn" onClick={onClose}>
                 x
             </button>
 
-            <h3 id="login-modal-title">
-                {user ? "Account" : "Log In"}
-            </h3>
+            <div className="user-info">
+                {user ? (
+                    <div className="logged-in-section">
+                        <div className="profile-display">
+                            <img src={user.photoURL} alt="profile" />
+                            <p>{user.displayName}</p>
+                            <p>{user.email}</p>
+                        </div>
 
-            {user ? (
-                <div id="logged-in-section">
-                    <div id="profile-display">
-                        <img src={user.photoURL} alt="profile" />
-                        <p>{user.displayName}</p>
-                        <p>{user.email}</p>
+                        <button className="logout-button" onClick={logout}>
+                            Log Out
+                        </button>
                     </div>
-
-                    <button id="logout-button" onClick={logout}>
-                        Log Out
+                ) : (
+                    <button className="login-button"
+                        onClick={async () => {
+                            const user = await loginWithGoogle();
+                            await ensureUserDocument(user);
+                            onClose();
+                        }}>
+                        Sign in with Google
                     </button>
-                </div>
-            ) : (
-                <button id="login-button"
-                    onClick={async () => {
-                        const user = await loginWithGoogle();
-                        await addUser(user);
-                        onClose();
-                    }}>
-                    Sign in with Google
-                </button>
-            )}
+                )}
+            </div>
         </div>
     );
 }
