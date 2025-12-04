@@ -36,7 +36,7 @@ export default function MapPage() {
   // Auth and Firestore stuff
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (currentUser) => {
-      console.log("Auth state changed:", currentUser);
+      console.log("[MapPage] Auth state changed:", currentUser);
       setUser(currentUser);
       if (!currentUser) return;
 
@@ -46,7 +46,7 @@ export default function MapPage() {
       // Merge local and cloud accounts
       setLocalAccounts((prev) => {
         const merged = Array.from(new Set([...prev, ...cloud]));
-        console.log("Merged local and cloud accounts:", merged);
+        console.log("[MapPage] Merged local and cloud accounts:", merged);
         // Push merged accounts to Firestore
         merged.forEach(async (acct) => {
           await addTrackedAccount(currentUser.uid, acct);
